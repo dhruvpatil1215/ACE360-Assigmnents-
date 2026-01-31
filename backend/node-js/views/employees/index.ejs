@@ -1,0 +1,174 @@
+<!-- Employees List -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-6 fw-bold text-primary mb-0">
+        <i class="bi bi-people me-2"></i>Employees
+    </h1>
+    <a href="/employees/create" class="btn btn-success">
+        <i class="bi bi-person-plus me-2"></i>Add Employee
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form action="/employees" method="GET" class="row g-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" name="search"
+                        placeholder="Search by name, email, or job title..." value="<%= filters.search %>">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="department">
+                    <option value="">All Departments</option>
+                    <% departments.forEach(dept=> { %>
+                        <option value="<%= dept._id %>" <%=filters.department==dept._id ? 'selected' : '' %>><%=
+                                dept.name %>
+                        </option>
+                        <% }) %>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="limit">
+                    <option value="10" <%=pagination.limit==10 ? 'selected' : '' %>>10 per page</option>
+                    <option value="25" <%=pagination.limit==25 ? 'selected' : '' %>>25 per page</option>
+                    <option value="50" <%=pagination.limit==50 ? 'selected' : '' %>>50 per page</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">
+                    <i class="bi bi-funnel me-1"></i>Filter
+                </button>
+                <a href="/employees" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Employees Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <% if (employees.length> 0) { %>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Employee</th>
+                            <th>Email</th>
+                            <th>Job Title</th>
+                            <th>Department</th>
+                            <th>Supervisor</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% employees.forEach(emp=> { %>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-primary text-white me-2">
+                                            <%= emp.firstName.charAt(0) %>
+                                                <%= emp.lastName.charAt(0) %>
+                                        </div>
+                                        <div>
+                                            <strong>
+                                                <%= emp.fullName %>
+                                            </strong>
+                                            <% if (emp.phone) { %>
+                                                <br><small class="text-muted">
+                                                    <%= emp.phone %>
+                                                </small>
+                                                <% } %>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <%= emp.email %>
+                                </td>
+                                <td>
+                                    <%= emp.jobTitle %>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">
+                                        <%= emp.department?.name || 'N/A' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <% if (emp.supervisor) { %>
+                                        <%= emp.supervisor.firstName %>
+                                            <%= emp.supervisor.lastName %>
+                                                <% } else { %>
+                                                    <span class="text-muted">None</span>
+                                                    <% } %>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group" role="group">
+                                        <a href="/employees/<%= emp._id %>" class="btn btn-sm btn-outline-info"
+                                            title="View">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="/employees/<%= emp._id %>/edit" class="btn btn-sm btn-outline-warning"
+                                            title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form action="/employees/<%= emp._id %>?_method=DELETE" method="POST"
+                                            class="d-inline"
+                                            onsubmit="return confirm('Are you sure you want to delete this employee?')">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <% }) %>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+                <div class="text-muted">
+                    Showing <%= (pagination.page - 1) * pagination.limit + 1 %> to <%= Math.min(pagination.page *
+                            pagination.limit, pagination.total) %> of <%= pagination.total %> entries
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item <%= !pagination.hasPrev ? 'disabled' : '' %>">
+                            <a class="page-link"
+                                href="?page=<%= pagination.page - 1 %>&limit=<%= pagination.limit %>&search=<%= filters.search %>&department=<%= filters.department %>">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        <% for (let i=Math.max(1, pagination.page - 2); i <=Math.min(pagination.totalPages,
+                            pagination.page + 2); i++) { %>
+                            <li class="page-item <%= pagination.page === i ? 'active' : '' %>">
+                                <a class="page-link"
+                                    href="?page=<%= i %>&limit=<%= pagination.limit %>&search=<%= filters.search %>&department=<%= filters.department %>">
+                                    <%= i %>
+                                </a>
+                            </li>
+                            <% } %>
+                                <li class="page-item <%= !pagination.hasNext ? 'disabled' : '' %>">
+                                    <a class="page-link"
+                                        href="?page=<%= pagination.page + 1 %>&limit=<%= pagination.limit %>&search=<%= filters.search %>&department=<%= filters.department %>">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                    </ul>
+                </nav>
+            </div>
+            <% } else { %>
+                <div class="text-center py-5">
+                    <i class="bi bi-person-x text-muted fs-1"></i>
+                    <p class="text-muted mt-2 mb-3">No employees found</p>
+                    <a href="/employees/create" class="btn btn-success">
+                        <i class="bi bi-person-plus me-2"></i>Add First Employee
+                    </a>
+                </div>
+                <% } %>
+    </div>
+</div>
